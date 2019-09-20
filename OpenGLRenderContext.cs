@@ -15,6 +15,7 @@ namespace NoZ.Platform.OpenGL {
         private ColorShader _colorShader;
         private TextureShaderA8 _textureShaderA8;
         private TextureShaderRGBA _textureShaderRGBA;
+        private TextureShaderRGB _textureShaderRGB;
         private TextureShaderSDF _textureShaderSDF;
         private TextureShaderStencil _textureShaderStencil;
 
@@ -38,6 +39,9 @@ namespace NoZ.Platform.OpenGL {
 
                 _textureShaderRGBA = new TextureShaderRGBA();
                 _textureShaderRGBA.Build();
+
+                _textureShaderRGB = new TextureShaderRGB();
+                _textureShaderRGB.Build();
 
                 _textureShaderSDF = new TextureShaderSDF();
                 _textureShaderSDF.Build();
@@ -66,6 +70,8 @@ namespace NoZ.Platform.OpenGL {
                 _textureShaderA8.Projection = projection;
                 _textureShaderRGBA.Use();
                 _textureShaderRGBA.Projection = projection;
+                _textureShaderRGB.Use();
+                _textureShaderRGB.Projection = projection;
                 _textureShaderSDF.Use();
                 _textureShaderSDF.Projection = projection;
                 _textureShaderStencil.Use();
@@ -120,7 +126,12 @@ namespace NoZ.Platform.OpenGL {
                 _currentShader = _textureShaderSDF;
             } else if (_currentImage != null && _currentImage.PixelFormat == PixelFormat.R8G8B8A8) {
                 _currentShader = _textureShaderRGBA;
-            } else {
+            }
+            else if (_currentImage != null && _currentImage.PixelFormat == PixelFormat.R8G8B8)
+            {
+                _currentShader = _textureShaderRGB;
+            }
+            else {
                 _currentShader = _colorShader;
             }
         }
