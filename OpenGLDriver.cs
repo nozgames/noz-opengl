@@ -23,7 +23,6 @@
 */
 
 using System;
-using System.IO;
 using System.Runtime.InteropServices;
 
 using NoZ.Graphics;
@@ -37,7 +36,14 @@ namespace NoZ.Platform.OpenGL
         private IntPtr _hdc;
 #endif
 
-        public static OpenGLDriver Create (Window window)
+        private OpenGLDriver() {}
+
+        public static OpenGLDriver Create ()
+        {
+            return new OpenGLDriver();
+        }
+
+        public void Bind (Window window)
         {
 #if !__IOS__
             // Set the pixel format for this DC
@@ -71,22 +77,20 @@ namespace NoZ.Platform.OpenGL
                 DamageMask = 0
             };
 
-            var driver = new OpenGLDriver();
             var hwnd = window.GetNativeHandle();
-            driver._hdc = GL.Win32.GetDC(hwnd);
-            var id = GL.Win32.wglChoosePixelFormat(driver._hdc, ref pfd);
-            GL.Win32.SetPixelFormat(driver._hdc, id, ref pfd);
-            driver._hglrc = GL.Win32.wglCreateContext(driver._hdc);
-            GL.Win32.wglMakeCurrent(driver._hdc, driver._hglrc);
+            _hdc = GL.Win32.GetDC(hwnd);
+            var id = GL.Win32.wglChoosePixelFormat(_hdc, ref pfd);
+            GL.Win32.SetPixelFormat(_hdc, id, ref pfd);
+            _hglrc = GL.Win32.wglCreateContext(_hdc);
+            GL.Win32.wglMakeCurrent(_hdc, _hglrc);
 #endif
 
             GL.ClearColor(1, 0, 0, 1);
             GL.Clear(GL.ClearBuffer.Color);
-            GL.Win32.wglSwapBuffers(driver._hdc);
+            GL.Win32.wglSwapBuffers(_hdc);
 
             // Disable V-Sync ?
             //GL.Imports.wglSwapIntervalEXT(0);#endif
-            return driver;
         }
 
         public GraphicsContext CreateContext() {
@@ -102,23 +106,12 @@ namespace NoZ.Platform.OpenGL
         }
 
         public void BeginFrame()
-        {
-            
+        {            
         }
 
         public void EndFrame()
         {
             GL.Win32.wglSwapBuffers(_hdc);
         }
-
-#if false
-        public virtual Cursor CreateCursor(Image image) {
-            return null;
-        }
-
-        public virtual Cursor CreateCursor(SystemCursor systemCursor) {
-            return null;
-        }
-#endif
     }
 }
