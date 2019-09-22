@@ -46,6 +46,12 @@ namespace NoZ.Platform.OpenGL
         public void Bind (Window window)
         {
 #if !__IOS__
+            if(_hglrc != IntPtr.Zero)
+            {
+                GL.Win32.wglMakeCurrent(_hdc, _hglrc);
+                return;
+            }
+
             // Set the pixel format for this DC
             var pfd = new GL.Win32.PixelFormatDescriptor
             {
