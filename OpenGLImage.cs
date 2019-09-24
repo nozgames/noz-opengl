@@ -107,8 +107,13 @@ namespace NoZ.Platform.OpenGL
 #if !__IOS__
             GL.Disable(GL.EnableCapability.AlphaTest);
 #endif
+#if false
             GL.TexParameter(GL.TextureTarget.Texture2D, GL.TextureParameterName.TextureMinFilter, (int)GL.TextureMagFilter.Linear);
             GL.TexParameter(GL.TextureTarget.Texture2D, GL.TextureParameterName.TextureMagFilter, (int)GL.TextureMagFilter.Linear);
+#else
+            GL.TexParameter(GL.TextureTarget.Texture2D, GL.TextureParameterName.TextureMinFilter, (int)GL.TextureMagFilter.Nearest);
+            GL.TexParameter(GL.TextureTarget.Texture2D, GL.TextureParameterName.TextureMagFilter, (int)GL.TextureMagFilter.Nearest);
+#endif
 
             GL.TexParameter(GL.TextureTarget.Texture2D, GL.TextureParameterName.TextureWrapS, (int)GL.TextureClamp.Edge);
             GL.TexParameter(GL.TextureTarget.Texture2D, GL.TextureParameterName.TextureWrapT, (int)GL.TextureClamp.Edge);
