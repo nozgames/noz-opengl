@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-#if __IOS__
+#if __NOZ_IOS__
 
 namespace NoZ.Platform.OpenGL
 {

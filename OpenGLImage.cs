@@ -104,7 +104,7 @@ namespace NoZ.Platform.OpenGL
                );
 
             GL.Disable(GL.EnableCapability.DepthTest);
-#if !__IOS__
+#if !__NOZ_IOS__
             GL.Disable(GL.EnableCapability.AlphaTest);
 #endif
 #if false

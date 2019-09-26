@@ -121,7 +121,7 @@ namespace NoZ.Platform.OpenGL {
             uint id = GL.CreateShader(shaderType);
 
             // Load the shader source
-#if __IOS__
+#if __NOZ_IOS__
 //			if(GetOpenGLShaderVersion()!=100) {
                 GL.ShaderSource(id, "#version 300 es\r\n" + source);
 //			}

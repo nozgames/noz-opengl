@@ -31,7 +31,7 @@ namespace NoZ.Platform.OpenGL
 {
     public class OpenGLDriver : IGraphicsDriver
     {
-#if !__IOS__
+#if !__NOZ_IOS__
         private IntPtr _hglrc;
         private IntPtr _hdc;
 #endif
@@ -45,8 +45,8 @@ namespace NoZ.Platform.OpenGL
 
         public void Bind (Window window)
         {
-#if !__IOS__
-            if(_hglrc != IntPtr.Zero)
+#if !__NOZ_IOS__
+            if (_hglrc != IntPtr.Zero)
             {
                 GL.Win32.wglMakeCurrent(_hdc, _hglrc);
                 return;
