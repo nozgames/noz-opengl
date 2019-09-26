@@ -155,7 +155,7 @@ namespace NoZ.Platform.OpenGL {
             CommitBatchIfNecessary(primitive);
 
             _batch.Image = (OpenGLImage)_currentImage;
-            _batch.PrimitiveType = PrimitiveType.TriangleList;
+            _batch.PrimitiveType = primitive;
             _batch.Shader = _currentShader;
             _batch.MaskDepth = _maskDepth;
             _batch.MaskMode = _maskMode;
