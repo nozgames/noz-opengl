@@ -25,99 +25,31 @@
 using System;
 using System.Runtime.InteropServices;
 
-using NoZ.Graphics;
-
 namespace NoZ.Platform.OpenGL
 {
     public class OpenGLDriver : IGraphicsDriver
     {
 #if !__NOZ_IOS__
-        private IntPtr _hglrc;
-        private IntPtr _hdc;
+#else
+        private uint _renderBufferId;
 #endif
 
         private OpenGLDriver() {}
 
-        public static OpenGLDriver Create ()
-        {
-            return new OpenGLDriver();
-        }
+        public static OpenGLDriver Create () => new OpenGLDriver();
 
-        public void Bind (Window window)
-        {
-#if !__NOZ_IOS__
-            if (_hglrc != IntPtr.Zero)
-            {
-                GL.Win32.wglMakeCurrent(_hdc, _hglrc);
-                return;
-            }
+        public GraphicsContext CreateContext() => new OpenGLRenderContext();
 
-            // Set the pixel format for this DC
-            var pfd = new GL.Win32.PixelFormatDescriptor
-            {
-                Size = (short)Marshal.SizeOf<GL.Win32.PixelFormatDescriptor>(),
-                Version = 1,
-                Flags = GL.Win32.PixelFormatDescriptorFlags.DRAW_TO_WINDOW |
-                        GL.Win32.PixelFormatDescriptorFlags.SUPPORT_OPENGL |
-                        GL.Win32.PixelFormatDescriptorFlags.DOUBLEBUFFER,
-                PixelType = GL.Win32.PixelType.Rgba,
-                ColorBits = 32,
-                RedBits = 0,
-                RedShift = 0,
-                GreenBits = 0,
-                GreenShift = 0,
-                BlueBits = 0,
-                BlueShift = 0,
-                AlphaBits = 0,
-                AlphaShift = 0,
-                AccumBits = 0,
-                AccumRedBits = 0,
-                AccumGreenBits = 0,
-                AccumBlueBits = 0,
-                AccumAlphaBits = 0,
-                DepthBits = 32,
-                StencilBits = 8,
-                AuxBuffers = 0,
-                LayerType = 0,
-                LayerMask = 0,
-                DamageMask = 0
-            };
+        public Image CreateImage() => new OpenGLImage(null);
 
-            var hwnd = window.GetNativeHandle();
-            _hdc = GL.Win32.GetDC(hwnd);
-            var id = GL.Win32.wglChoosePixelFormat(_hdc, ref pfd);
-            GL.Win32.SetPixelFormat(_hdc, id, ref pfd);
-            _hglrc = GL.Win32.wglCreateContext(_hdc);
-            GL.Win32.wglMakeCurrent(_hdc, _hglrc);
-#endif
-
-            GL.ClearColor(1, 0, 0, 1);
-            GL.Clear(GL.ClearBuffer.Color);
-            GL.Win32.wglSwapBuffers(_hdc);
-
-            // Disable V-Sync ?
-            //GL.Imports.wglSwapIntervalEXT(0);#endif
-        }
-
-        public GraphicsContext CreateContext() {
-            return new OpenGLRenderContext();
-        }
-
-        public Image CreateImage() {
-            return new OpenGLImage(null);
-        }
-
-        public Image CreateImage(string name, int width, int height, PixelFormat format) {
-            return new OpenGLImage(name, width, height, format);
-        }
+        public Image CreateImage(string name, int width, int height, PixelFormat format) => new OpenGLImage(name, width, height, format);
 
         public void BeginFrame()
         {            
         }
 
         public void EndFrame()
-        {
-            GL.Win32.wglSwapBuffers(_hdc);
+        {            
         }
     }
 }

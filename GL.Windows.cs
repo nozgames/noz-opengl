@@ -1,14 +1,40 @@
-﻿using System;
+﻿/*
+  NoZ Game Engine
+
+  Copyright(c) 2019 NoZ Games, LLC
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files(the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions :
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+*/
+
+#if __NOZ_WINDOWS__
+
+using System;
 using System.Runtime.InteropServices;
 using System.Security;
 
 namespace NoZ.Platform.OpenGL
 {
-    static partial class GL
+    public static partial class GL
     {
         private const string OpenGL32 = "opengl32.dll";
 
-        internal static class Win32
+        public static class Win32
         {
             private const string User32 = "user32.dll";
             private const string Gdi32 = "gdi32.dll";
@@ -20,35 +46,35 @@ namespace NoZ.Platform.OpenGL
             }
 
             [DllImport(Kernel32, SetLastError = true)]
-            internal static extern IntPtr LoadLibrary(string dllName);
+            public static extern IntPtr LoadLibrary(string dllName);
 
             [DllImport(Gdi32, SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
-            internal static extern bool SetPixelFormat(IntPtr dc, int format, ref PixelFormatDescriptor pfd);
+            public static extern bool SetPixelFormat(IntPtr dc, int format, ref PixelFormatDescriptor pfd);
 
             [DllImport(User32)]
-            internal static extern IntPtr GetDC(IntPtr hwnd);
+            public static extern IntPtr GetDC(IntPtr hwnd);
 
             [DllImport(OpenGL32, ExactSpelling = true, SetLastError = true)]
-            internal extern static unsafe int wglChoosePixelFormat(IntPtr hdc, ref PixelFormatDescriptor ppfd);
-
-            [SuppressUnmanagedCodeSecurity]
-            [DllImport(OpenGL32, ExactSpelling = true, SetLastError = true)]
-            internal extern static IntPtr wglCreateContext(IntPtr hDc);
+            public extern static unsafe int wglChoosePixelFormat(IntPtr hdc, ref PixelFormatDescriptor ppfd);
 
             [SuppressUnmanagedCodeSecurity]
             [DllImport(OpenGL32, ExactSpelling = true, SetLastError = true)]
-            internal extern static bool wglMakeCurrent(IntPtr hDc, IntPtr newContext);
+            public extern static IntPtr wglCreateContext(IntPtr hDc);
+
+            [SuppressUnmanagedCodeSecurity]
+            [DllImport(OpenGL32, ExactSpelling = true, SetLastError = true)]
+            public extern static bool wglMakeCurrent(IntPtr hDc, IntPtr newContext);
 
             [DllImport(OpenGL32, ExactSpelling = true, SetLastError = true)]
-            internal extern static bool wglSwapBuffers(IntPtr hdc);
+            public extern static bool wglSwapBuffers(IntPtr hdc);
 
             [SuppressUnmanagedCodeSecurity]
             [DllImport(OpenGL32, CharSet = CharSet.Ansi, SetLastError = true, ExactSpelling = true)]
             public static extern IntPtr wglGetProcAddress(string functionName);
 
             [Flags]
-            internal enum PixelFormatDescriptorFlags : int
+            public enum PixelFormatDescriptorFlags : int
             {
                 // PixelFormatDescriptor flags
                 DOUBLEBUFFER = 0x01,
@@ -73,7 +99,7 @@ namespace NoZ.Platform.OpenGL
                 STEREO_DONTCARE = unchecked((int)0x80000000)
             }
 
-            internal enum PixelType : byte
+            public enum PixelType : byte
             {
                 Rgba = 0,
                 Indexed = 1
@@ -81,34 +107,34 @@ namespace NoZ.Platform.OpenGL
 
 
             [StructLayout(LayoutKind.Sequential)]
-            internal struct PixelFormatDescriptor
+            public struct PixelFormatDescriptor
             {
-                internal short Size;
-                internal short Version;
-                internal PixelFormatDescriptorFlags Flags;
-                internal PixelType PixelType;
-                internal byte ColorBits;
-                internal byte RedBits;
-                internal byte RedShift;
-                internal byte GreenBits;
-                internal byte GreenShift;
-                internal byte BlueBits;
-                internal byte BlueShift;
-                internal byte AlphaBits;
-                internal byte AlphaShift;
-                internal byte AccumBits;
-                internal byte AccumRedBits;
-                internal byte AccumGreenBits;
-                internal byte AccumBlueBits;
-                internal byte AccumAlphaBits;
-                internal byte DepthBits;
-                internal byte StencilBits;
-                internal byte AuxBuffers;
-                internal byte LayerType;
+                public short Size;
+                public short Version;
+                public PixelFormatDescriptorFlags Flags;
+                public PixelType PixelType;
+                public byte ColorBits;
+                public byte RedBits;
+                public byte RedShift;
+                public byte GreenBits;
+                public byte GreenShift;
+                public byte BlueBits;
+                public byte BlueShift;
+                public byte AlphaBits;
+                public byte AlphaShift;
+                public byte AccumBits;
+                public byte AccumRedBits;
+                public byte AccumGreenBits;
+                public byte AccumBlueBits;
+                public byte AccumAlphaBits;
+                public byte DepthBits;
+                public byte StencilBits;
+                public byte AuxBuffers;
+                public byte LayerType;
                 private byte Reserved;
-                internal int LayerMask;
-                internal int VisibleMask;
-                internal int DamageMask;
+                public int LayerMask;
+                public int VisibleMask;
+                public int DamageMask;
             }
         }
 
@@ -237,3 +263,5 @@ namespace NoZ.Platform.OpenGL
         }
     }
 }
+
+#endif

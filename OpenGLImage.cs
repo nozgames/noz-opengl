@@ -24,8 +24,6 @@
 
 using System;
 
-using NoZ.Graphics;
-
 namespace NoZ.Platform.OpenGL
 {
     internal class OpenGLImage : Image

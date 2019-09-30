@@ -2,10 +2,11 @@
 using System.Runtime.InteropServices;
 
 using NoZ.Platform.OpenGL.ES30;
-using NoZ.Graphics;
 
-namespace NoZ.Platform.OpenGL {
-    class OpenGLRenderContext : GraphicsContext {
+namespace NoZ.Platform.OpenGL
+{
+    class OpenGLRenderContext : GraphicsContext
+    {
         private static readonly int VertexBufferSize = 1024;
         private static readonly int IndexBufferSize = VertexBufferSize * 4;
 
@@ -28,9 +29,11 @@ namespace NoZ.Platform.OpenGL {
 
         private OpenGLBatch _batch = new OpenGLBatch();
 
-        public OpenGLRenderContext() {
+        public OpenGLRenderContext()
+        {
 
-            try {
+            try
+            {
                 _colorShader = new ColorShader();
                 _colorShader.Build();
 
@@ -49,19 +52,23 @@ namespace NoZ.Platform.OpenGL {
                 _textureShaderStencil = new TextureShaderStencil();
                 _textureShaderStencil.Build();
 
-            } catch (OpenGLException e) {
+            }
+            catch (OpenGLException e)
+            {
                 Console.WriteLine($"error: {e.Message}");
                 throw new ApplicationException();
             }
         }
 
-        public override void Begin(Vector2Int size, Color backgroundColor) {
+        public override void Begin(Vector2Int size, Color backgroundColor)
+        {
             base.Begin(size, backgroundColor);
 
             _viewSize = size;
 
             // Update the projection in all of the shaders if the view size changes.
-            if (_projectionSize != _viewSize) {
+            if (_projectionSize != _viewSize)
+            {
                 _projectionSize = _viewSize;
                 Matrix4 projection = Matrix4.CreateOrtho(0.0f, size.x, size.y, 0.0f, -1000.0f, 1000.0f);
                 _colorShader.Use();
@@ -77,7 +84,7 @@ namespace NoZ.Platform.OpenGL {
                 _textureShaderStencil.Use();
                 _textureShaderStencil.Projection = projection;
 
-                if(null != _batch.Shader)
+                if (null != _batch.Shader)
                     _batch.Shader.Use();
                 GL.ClearStencil(0);
             }
@@ -94,61 +101,76 @@ namespace NoZ.Platform.OpenGL {
             GL.ColorMask(true, true, true, true);
             GL.DepthMask(true);
 
-            if (backgroundColor.A > 0) {
+            if (backgroundColor.A > 0)
+            {
                 GL.ClearColor(backgroundColor);
                 GL.Clear(GL.ClearBuffer.Color | GL.ClearBuffer.Depth);
-            } else {
+            }
+            else
+            {
                 GL.Clear(GL.ClearBuffer.Depth);
-            }            
+            }
         }
 
-        public override void End() {
+        public override void End()
+        {
             _batch.Commit();
             base.End();
         }
 
-        public override void SetMaskMode (MaskMode mode) {
+        public override void SetMaskMode(MaskMode mode)
+        {
             _maskMode = mode;
         }
 
-        public override void SetColor(Color color) {
+        public override void SetColor(Color color)
+        {
             _currentColor = color;
         }
 
-        public override void SetTransform(in Matrix3 transform) {
+        public override void SetTransform(in Matrix3 transform)
+        {
             _currentTransform = Matrix3.Multiply(transform, WorldToScreen);
         }
 
-        public override void SetImage(in Image image) {
+        public override void SetImage(in Image image)
+        {
             _currentImage = image;
 
-            if (_currentImage != null && _currentImage.PixelFormat == PixelFormat.A8) {
+            if (_currentImage != null && _currentImage.PixelFormat == PixelFormat.A8)
+            {
                 _currentShader = _textureShaderSDF;
-            } else if (_currentImage != null && _currentImage.PixelFormat == PixelFormat.R8G8B8A8) {
+            }
+            else if (_currentImage != null && _currentImage.PixelFormat == PixelFormat.R8G8B8A8)
+            {
                 _currentShader = _textureShaderRGBA;
             }
             else if (_currentImage != null && _currentImage.PixelFormat == PixelFormat.R8G8B8)
             {
                 _currentShader = _textureShaderRGB;
             }
-            else {
+            else
+            {
                 _currentShader = _colorShader;
             }
         }
 
-        public void CommitBatchIfNecessary(PrimitiveType primitive) {
+        public void CommitBatchIfNecessary(PrimitiveType primitive)
+        {
             if (_batch.Image == _currentImage &&
                 _batch.PrimitiveType == primitive &&
                 _batch.MaskMode == _maskMode &&
-                _batch.MaskDepth == _maskDepth && 
-                _batch.Shader == _currentShader) {
+                _batch.MaskDepth == _maskDepth &&
+                _batch.Shader == _currentShader)
+            {
                 return;
             }
 
             _batch.Commit();
         }
 
-        public override void Draw(PrimitiveType primitive, Vertex[] vertexBuffer, int vertexCount, short[] indexBuffer, int indexCount) {
+        public override void Draw(PrimitiveType primitive, Vertex[] vertexBuffer, int vertexCount, short[] indexBuffer, int indexCount)
+        {
             if (_currentColor.A == 0)
                 return;
 
@@ -164,13 +186,15 @@ namespace NoZ.Platform.OpenGL {
                 _batch.Shader = _textureShaderStencil;
 
 
-            if (!_batch.Add(vertexBuffer, vertexCount, indexBuffer, indexCount, _currentTransform, _currentColor)) {
+            if (!_batch.Add(vertexBuffer, vertexCount, indexBuffer, indexCount, _currentTransform, _currentColor))
+            {
                 _batch.Commit();
                 _batch.Add(vertexBuffer, vertexCount, indexBuffer, indexCount, _currentTransform, _currentColor);
             }
         }
 
-        public override void Draw(PrimitiveType primitive, Vertex[] vertexBuffer, int vertexCount) {
+        public override void Draw(PrimitiveType primitive, Vertex[] vertexBuffer, int vertexCount)
+        {
             if (_currentColor.A == 0)
                 return;
 
@@ -184,10 +208,12 @@ namespace NoZ.Platform.OpenGL {
             if (_batch.MaskMode == MaskMode.Draw && _batch.Image != null)
                 _batch.Shader = _textureShaderStencil;
 
-            switch (primitive) {
+            switch (primitive)
+            {
                 case PrimitiveType.TriangleStrip:
                     _batch.PrimitiveType = PrimitiveType.TriangleList;
-                    if (!_batch.AddTriangleStrip(vertexBuffer, vertexCount, _currentTransform, _currentColor)) {
+                    if (!_batch.AddTriangleStrip(vertexBuffer, vertexCount, _currentTransform, _currentColor))
+                    {
                         _batch.Commit();
                         _batch.AddTriangleStrip(vertexBuffer, vertexCount, _currentTransform, _currentColor);
                     }
@@ -195,7 +221,8 @@ namespace NoZ.Platform.OpenGL {
 
                 case PrimitiveType.LineList:
                     _batch.PrimitiveType = PrimitiveType.LineList;
-                    if (!_batch.AddLineList(vertexBuffer, vertexCount, _currentTransform, _currentColor)) {
+                    if (!_batch.AddLineList(vertexBuffer, vertexCount, _currentTransform, _currentColor))
+                    {
                         _batch.Commit();
                         _batch.AddLineList(vertexBuffer, vertexCount, _currentTransform, _currentColor);
                     }
@@ -206,7 +233,8 @@ namespace NoZ.Platform.OpenGL {
             }
         }
 
-        public override void Draw (in Quad quad) {
+        public override void Draw(in Quad quad)
+        {
             if (_currentColor.A == 0)
                 return;
 
@@ -221,13 +249,15 @@ namespace NoZ.Platform.OpenGL {
             if (_batch.MaskMode == MaskMode.Draw && _batch.Image != null)
                 _batch.Shader = _textureShaderStencil;
 
-            if (!_batch.AddQuad(quad, _currentTransform, _currentColor)) {
+            if (!_batch.AddQuad(quad, _currentTransform, _currentColor))
+            {
                 _batch.Commit();
                 _batch.AddQuad(quad, _currentTransform, _currentColor);
             }
         }
 
-        public override void Draw (Quad[] quads, int count) {
+        public override void Draw(Quad[] quads, int count)
+        {
             if (_currentColor.A == 0)
                 return;
 
@@ -243,17 +273,20 @@ namespace NoZ.Platform.OpenGL {
                 _batch.Shader = _textureShaderStencil;
 
 
-            if (!_batch.AddQuads(quads, count, _currentTransform, _currentColor)) {
+            if (!_batch.AddQuads(quads, count, _currentTransform, _currentColor))
+            {
                 _batch.Commit();
                 _batch.AddQuads(quads, count, _currentTransform, _currentColor);
             }
         }
 
-        public override void PushMask () {
+        public override void PushMask()
+        {
             _maskDepth++;
         }
 
-        public override void PopMask() {
+        public override void PopMask()
+        {
             _maskDepth--;
         }
     }
