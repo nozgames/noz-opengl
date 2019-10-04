@@ -1,4 +1,6 @@
-﻿using System;
+﻿#if false
+
+using System;
 using System.Runtime.InteropServices;
 
 using NoZ.Platform.OpenGL.ES30;
@@ -7,6 +9,9 @@ namespace NoZ.Platform.OpenGL
 {
     class OpenGLRenderContext : GraphicsContext
     {
+        private static readonly int VertexBufferSize = 1024;
+        private static readonly int IndexBufferSize = VertexBufferSize * 4;
+
         private Vector2Int _viewSize;
         private Vector2Int _projectionSize;
 
@@ -115,39 +120,40 @@ namespace NoZ.Platform.OpenGL
             base.End();
         }
 
-        public override MaskMode MaskMode {
-            get => _maskMode;
-            set => _maskMode = value;
+        public override void SetMaskMode(MaskMode mode)
+        {
+            _maskMode = mode;
         }
 
-        public override Color Color {
-            get => _currentColor;
-            set => _currentColor = value;
+        public override void SetColor(Color color)
+        {
+            _currentColor = color;
         }
 
-        public override Matrix3 Transform {
-            get => _currentTransform;
-            set {
-                _currentTransform = Matrix3.Multiply(value, WorldToScreen);
+        public override void SetTransform(in Matrix3 transform)
+        {
+            _currentTransform = Matrix3.Multiply(transform, WorldToScreen);
+        }
+
+        public override void SetImage(in Image image)
+        {
+            _currentImage = image;
+
+            if (_currentImage != null && _currentImage.PixelFormat == PixelFormat.A8)
+            {
+                _currentShader = _textureShaderSDF;
             }
-        }
-
-        public override Image Image {
-            get => _currentImage;
-            set {
-                if (_currentImage == value)
-                    return;
-
-                _currentImage = value;
-
-                if (_currentImage != null && _currentImage.PixelFormat == PixelFormat.A8)
-                    _currentShader = _textureShaderSDF;
-                else if (_currentImage != null && _currentImage.PixelFormat == PixelFormat.R8G8B8A8)
-                    _currentShader = _textureShaderRGBA;
-                else if (_currentImage != null && _currentImage.PixelFormat == PixelFormat.R8G8B8)
-                    _currentShader = _textureShaderRGB;
-                else
-                    _currentShader = _colorShader;
+            else if (_currentImage != null && _currentImage.PixelFormat == PixelFormat.R8G8B8A8)
+            {
+                _currentShader = _textureShaderRGBA;
+            }
+            else if (_currentImage != null && _currentImage.PixelFormat == PixelFormat.R8G8B8)
+            {
+                _currentShader = _textureShaderRGB;
+            }
+            else
+            {
+                _currentShader = _colorShader;
             }
         }
 
@@ -180,6 +186,7 @@ namespace NoZ.Platform.OpenGL
 
             if (_batch.MaskMode == MaskMode.Draw && _batch.Image != null)
                 _batch.Shader = _textureShaderStencil;
+
 
             if (!_batch.Add(vertexBuffer, vertexCount, indexBuffer, indexCount, _currentTransform, _currentColor))
             {
@@ -275,7 +282,16 @@ namespace NoZ.Platform.OpenGL
             }
         }
 
-        public override void PushMask() => _maskDepth++;
-        public override void PopMask() => _maskDepth--;
+        public override void PushMask()
+        {
+            _maskDepth++;
+        }
+
+        public override void PopMask()
+        {
+            _maskDepth--;
+        }
     }
 }
+
+#endif

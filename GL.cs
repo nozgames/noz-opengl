@@ -106,6 +106,9 @@ namespace NoZ.Platform.OpenGL
 
             [DllImport(OpenGL32, ExactSpelling = true, CallingConvention = CallingConvention.Winapi)]
             public static extern void glClearStencil(uint value);
+
+            [DllImport(OpenGL32, ExactSpelling = true, CallingConvention = CallingConvention.Winapi)]
+            public static extern void glFinish();
         };
 
 
@@ -626,6 +629,11 @@ namespace NoZ.Platform.OpenGL
         public static void ClearStencil(int value)
         {
             Imports.glClearStencil((uint)value);
+        }
+
+        public static void Finish()
+        {
+            Imports.glFinish();
         }
     }
 }

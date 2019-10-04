@@ -48,7 +48,7 @@ namespace NoZ.Platform.OpenGL
         /// <summary>
         /// The maximum batch size is measured in individual quads.
         /// </summary>
-        private const int MaxQuads = 256;
+        private const int MaxQuads = 2048;
         private const int MaxVerts = MaxQuads * 4;
         private const int MaxIndicies = MaxQuads * 6;
 
@@ -68,7 +68,6 @@ namespace NoZ.Platform.OpenGL
             Color color
             )
         {
-
             // Do we have enough room?
             if (_vertexBuffer.Count + vertexCount > _vertexBuffer.Capacity)
                 return false;
