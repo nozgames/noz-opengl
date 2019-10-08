@@ -20,7 +20,6 @@ namespace NoZ.Platform.OpenGL
         private Matrix3 _currentTransform;
         private Image _currentImage;
         private OpenGLShader _currentShader;
-        private Color _currentColor;
         private int _maskDepth;
         private MaskMode _maskMode = MaskMode.None;
 
@@ -120,11 +119,6 @@ namespace NoZ.Platform.OpenGL
             set => _maskMode = value;
         }
 
-        public override Color Color {
-            get => _currentColor;
-            set => _currentColor = value;
-        }
-
         public override Matrix3 Transform {
             get => _currentTransform;
             set {
@@ -167,7 +161,7 @@ namespace NoZ.Platform.OpenGL
 
         public override void Draw(PrimitiveType primitive, Vertex[] vertexBuffer, int vertexCount, short[] indexBuffer, int indexCount)
         {
-            if (_currentColor.A == 0)
+            if (ColorWithOpacity.A == 0)
                 return;
 
             CommitBatchIfNecessary(primitive);
@@ -181,16 +175,16 @@ namespace NoZ.Platform.OpenGL
             if (_batch.MaskMode == MaskMode.Draw && _batch.Image != null)
                 _batch.Shader = _textureShaderStencil;
 
-            if (!_batch.Add(vertexBuffer, vertexCount, indexBuffer, indexCount, _currentTransform, _currentColor))
+            if (!_batch.Add(vertexBuffer, vertexCount, indexBuffer, indexCount, _currentTransform, ColorWithOpacity))
             {
                 _batch.Commit();
-                _batch.Add(vertexBuffer, vertexCount, indexBuffer, indexCount, _currentTransform, _currentColor);
+                _batch.Add(vertexBuffer, vertexCount, indexBuffer, indexCount, _currentTransform, ColorWithOpacity);
             }
         }
 
         public override void Draw(PrimitiveType primitive, Vertex[] vertexBuffer, int vertexCount)
         {
-            if (_currentColor.A == 0)
+            if (ColorWithOpacity.A == 0)
                 return;
 
             CommitBatchIfNecessary(primitive);
@@ -207,19 +201,19 @@ namespace NoZ.Platform.OpenGL
             {
                 case PrimitiveType.TriangleStrip:
                     _batch.PrimitiveType = PrimitiveType.TriangleList;
-                    if (!_batch.AddTriangleStrip(vertexBuffer, vertexCount, _currentTransform, _currentColor))
+                    if (!_batch.AddTriangleStrip(vertexBuffer, vertexCount, _currentTransform, ColorWithOpacity))
                     {
                         _batch.Commit();
-                        _batch.AddTriangleStrip(vertexBuffer, vertexCount, _currentTransform, _currentColor);
+                        _batch.AddTriangleStrip(vertexBuffer, vertexCount, _currentTransform, ColorWithOpacity);
                     }
                     break;
 
                 case PrimitiveType.LineList:
                     _batch.PrimitiveType = PrimitiveType.LineList;
-                    if (!_batch.AddLineList(vertexBuffer, vertexCount, _currentTransform, _currentColor))
+                    if (!_batch.AddLineList(vertexBuffer, vertexCount, _currentTransform, ColorWithOpacity))
                     {
                         _batch.Commit();
-                        _batch.AddLineList(vertexBuffer, vertexCount, _currentTransform, _currentColor);
+                        _batch.AddLineList(vertexBuffer, vertexCount, _currentTransform, ColorWithOpacity);
                     }
                     break;
 
@@ -230,7 +224,7 @@ namespace NoZ.Platform.OpenGL
 
         public override void Draw(in Quad quad)
         {
-            if (_currentColor.A == 0)
+            if (ColorWithOpacity.A == 0)
                 return;
 
             CommitBatchIfNecessary(PrimitiveType.TriangleList);
@@ -244,16 +238,16 @@ namespace NoZ.Platform.OpenGL
             if (_batch.MaskMode == MaskMode.Draw && _batch.Image != null)
                 _batch.Shader = _textureShaderStencil;
 
-            if (!_batch.AddQuad(quad, _currentTransform, _currentColor))
+            if (!_batch.AddQuad(quad, _currentTransform, ColorWithOpacity))
             {
                 _batch.Commit();
-                _batch.AddQuad(quad, _currentTransform, _currentColor);
+                _batch.AddQuad(quad, _currentTransform, ColorWithOpacity);
             }
         }
 
         public override void Draw(Quad[] quads, int count)
         {
-            if (_currentColor.A == 0)
+            if (ColorWithOpacity.A == 0)
                 return;
 
             CommitBatchIfNecessary(PrimitiveType.TriangleList);
@@ -268,10 +262,10 @@ namespace NoZ.Platform.OpenGL
                 _batch.Shader = _textureShaderStencil;
 
 
-            if (!_batch.AddQuads(quads, count, _currentTransform, _currentColor))
+            if (!_batch.AddQuads(quads, count, _currentTransform, ColorWithOpacity))
             {
                 _batch.Commit();
-                _batch.AddQuads(quads, count, _currentTransform, _currentColor);
+                _batch.AddQuads(quads, count, _currentTransform, ColorWithOpacity);
             }
         }
 
