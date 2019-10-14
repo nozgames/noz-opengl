@@ -160,14 +160,22 @@ namespace NoZ.Platform.OpenGL
                     _batch.Image = node.image as OpenGLImage;
                     _batch.DrawNodeType = node.Type;
                     _batch.Shader = shader;
-                    _batch.Add(node.quad, node.color);
+                    if (!_batch.Add(node.quad, node.color))
+                    {
+                        _batch.Commit();
+                        _batch.Add(node.quad, node.color);
+                    }
                     break;
 
                 case DrawNodeType.DebugLine:
                     _batch.Image = null;
                     _batch.DrawNodeType = node.Type;
                     _batch.Shader = shader;
-                    _batch.Add(node.quad.TL, node.quad.TR, node.color);
+                    if (!_batch.Add(node.quad.TL, node.quad.TR, node.color))
+                    {
+                        _batch.Add(node.quad.TL, node.quad.TR, node.color);
+                        _batch.Commit();
+                    }                        
                     break;
             }
         }
