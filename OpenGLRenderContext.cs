@@ -1,5 +1,28 @@
-﻿using System;
-using System.Runtime.InteropServices;
+﻿/*
+  NoZ Game Engine
+
+  Copyright(c) 2019 NoZ Games, LLC
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files(the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions :
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+*/
+
+using System;
 
 using NoZ.Platform.OpenGL.ES30;
 
@@ -17,17 +40,10 @@ namespace NoZ.Platform.OpenGL
         private TextureShaderSDF _textureShaderSDF;
         private TextureShaderStencil _textureShaderStencil;
 
-        private Matrix3 _currentTransform;
-        private Image _currentImage;
-        private OpenGLShader _currentShader;
-        private int _maskDepth;
-        private MaskMode _maskMode = MaskMode.None;
-
         private OpenGLBatch _batch = new OpenGLBatch();
 
         public OpenGLRenderContext()
         {
-
             try
             {
                 _colorShader = new ColorShader();
@@ -56,7 +72,7 @@ namespace NoZ.Platform.OpenGL
             }
         }
 
-        public override void Begin(Vector2Int size, Color backgroundColor)
+        protected override void Begin(Vector2Int size, Color backgroundColor)
         {
             base.Begin(size, backgroundColor);
 
@@ -85,9 +101,7 @@ namespace NoZ.Platform.OpenGL
                 GL.ClearStencil(0);
             }
 
-            _maskMode = MaskMode.None;
-            _maskDepth = 0;
-
+            // Initialize the viewport to the given size
             GL.Viewport(0, 0, size.x, size.y);
 
             GL.Enable(GL.EnableCapability.Blend);
@@ -97,6 +111,7 @@ namespace NoZ.Platform.OpenGL
             GL.ColorMask(true, true, true, true);
             GL.DepthMask(true);
 
+            // Clear the background if a background color was given
             if (backgroundColor.A > 0)
             {
                 GL.ClearColor(backgroundColor);
@@ -108,168 +123,53 @@ namespace NoZ.Platform.OpenGL
             }
         }
 
-        public override void End()
+        protected override void End()
         {
-            _batch.Commit();
             base.End();
-        }
-
-        public override MaskMode MaskMode {
-            get => _maskMode;
-            set => _maskMode = value;
-        }
-
-        public override Matrix3 Transform {
-            get => _currentTransform;
-            set {
-                _currentTransform = Matrix3.Multiply(value, WorldToScreen);
-            }
-        }
-
-        public override Image Image {
-            get => _currentImage;
-            set {
-                if (_currentImage == value)
-                    return;
-
-                _currentImage = value;
-
-                if (_currentImage != null && _currentImage.PixelFormat == PixelFormat.A8)
-                    _currentShader = _textureShaderSDF;
-                else if (_currentImage != null && _currentImage.PixelFormat == PixelFormat.R8G8B8A8)
-                    _currentShader = _textureShaderRGBA;
-                else if (_currentImage != null && _currentImage.PixelFormat == PixelFormat.R8G8B8)
-                    _currentShader = _textureShaderRGB;
-                else
-                    _currentShader = _colorShader;
-            }
-        }
-
-        public void CommitBatchIfNecessary(PrimitiveType primitive)
-        {
-            if (_batch.Image == _currentImage &&
-                _batch.PrimitiveType == primitive &&
-                _batch.MaskMode == _maskMode &&
-                _batch.MaskDepth == _maskDepth &&
-                _batch.Shader == _currentShader)
-            {
-                return;
-            }
-
             _batch.Commit();
         }
 
-        public override void Draw(PrimitiveType primitive, Vertex[] vertexBuffer, int vertexCount, short[] indexBuffer, int indexCount)
-        {
-            if (ColorWithOpacity.A == 0)
-                return;
-
-            CommitBatchIfNecessary(primitive);
-
-            _batch.Image = (OpenGLImage)_currentImage;
-            _batch.PrimitiveType = primitive;
-            _batch.Shader = _currentShader;
-            _batch.MaskDepth = _maskDepth;
-            _batch.MaskMode = _maskMode;
-
-            if (_batch.MaskMode == MaskMode.Draw && _batch.Image != null)
-                _batch.Shader = _textureShaderStencil;
-
-            if (!_batch.Add(vertexBuffer, vertexCount, indexBuffer, indexCount, _currentTransform, ColorWithOpacity))
-            {
-                _batch.Commit();
-                _batch.Add(vertexBuffer, vertexCount, indexBuffer, indexCount, _currentTransform, ColorWithOpacity);
-            }
+        /// <summary>
+        /// Return the default shader used to render the given image
+        /// </summary>
+        private OpenGLShader GetDefaultShader (Image image) 
+        { 
+            if (image != null && image.PixelFormat == PixelFormat.A8)
+                return _textureShaderSDF;
+            else if (image != null && image.PixelFormat == PixelFormat.R8G8B8A8)
+                return _textureShaderRGBA;
+            else if (image != null && image.PixelFormat == PixelFormat.R8G8B8)
+                return _textureShaderRGB;
+            else
+                return _colorShader;
         }
 
-        public override void Draw(PrimitiveType primitive, Vertex[] vertexBuffer, int vertexCount)
+        /// <summary>
+        /// Draw a single node
+        /// </summary>
+        protected override void Draw (DrawNode node)
         {
-            if (ColorWithOpacity.A == 0)
-                return;
+            var shader = GetDefaultShader(node.image);
 
-            CommitBatchIfNecessary(primitive);
+            if (_batch.Image != node.image || _batch.Shader != shader || _batch.DrawNodeType != node.Type)
+                _batch.Commit();
 
-            _batch.Image = (OpenGLImage)_currentImage;
-            _batch.Shader = _currentShader;
-            _batch.MaskDepth = _maskDepth;
-            _batch.MaskMode = _maskMode;
-
-            if (_batch.MaskMode == MaskMode.Draw && _batch.Image != null)
-                _batch.Shader = _textureShaderStencil;
-
-            switch (primitive)
+            switch(node.Type)
             {
-                case PrimitiveType.TriangleStrip:
-                    _batch.PrimitiveType = PrimitiveType.TriangleList;
-                    if (!_batch.AddTriangleStrip(vertexBuffer, vertexCount, _currentTransform, ColorWithOpacity))
-                    {
-                        _batch.Commit();
-                        _batch.AddTriangleStrip(vertexBuffer, vertexCount, _currentTransform, ColorWithOpacity);
-                    }
+                case DrawNodeType.Quad:
+                    _batch.Image = node.image as OpenGLImage;
+                    _batch.DrawNodeType = node.Type;
+                    _batch.Shader = shader;
+                    _batch.Add(node.quad, node.color);
                     break;
 
-                case PrimitiveType.LineList:
-                    _batch.PrimitiveType = PrimitiveType.LineList;
-                    if (!_batch.AddLineList(vertexBuffer, vertexCount, _currentTransform, ColorWithOpacity))
-                    {
-                        _batch.Commit();
-                        _batch.AddLineList(vertexBuffer, vertexCount, _currentTransform, ColorWithOpacity);
-                    }
+                case DrawNodeType.DebugLine:
+                    _batch.Image = null;
+                    _batch.DrawNodeType = node.Type;
+                    _batch.Shader = shader;
+                    _batch.Add(node.quad.TL, node.quad.TR, node.color);
                     break;
-
-                default:
-                    throw new NotImplementedException();
             }
         }
-
-        public override void Draw(in Quad quad)
-        {
-            if (ColorWithOpacity.A == 0)
-                return;
-
-            CommitBatchIfNecessary(PrimitiveType.TriangleList);
-
-            _batch.Image = (OpenGLImage)_currentImage;
-            _batch.PrimitiveType = PrimitiveType.TriangleList;
-            _batch.Shader = _currentShader;
-            _batch.MaskDepth = _maskDepth;
-            _batch.MaskMode = _maskMode;
-
-            if (_batch.MaskMode == MaskMode.Draw && _batch.Image != null)
-                _batch.Shader = _textureShaderStencil;
-
-            if (!_batch.AddQuad(quad, _currentTransform, ColorWithOpacity))
-            {
-                _batch.Commit();
-                _batch.AddQuad(quad, _currentTransform, ColorWithOpacity);
-            }
-        }
-
-        public override void Draw(Quad[] quads, int count)
-        {
-            if (ColorWithOpacity.A == 0)
-                return;
-
-            CommitBatchIfNecessary(PrimitiveType.TriangleList);
-
-            _batch.Image = (OpenGLImage)_currentImage;
-            _batch.PrimitiveType = PrimitiveType.TriangleList;
-            _batch.Shader = _currentShader;
-            _batch.MaskDepth = _maskDepth;
-            _batch.MaskMode = _maskMode;
-
-            if (_batch.MaskMode == MaskMode.Draw && _batch.Image != null)
-                _batch.Shader = _textureShaderStencil;
-
-
-            if (!_batch.AddQuads(quads, count, _currentTransform, ColorWithOpacity))
-            {
-                _batch.Commit();
-                _batch.AddQuads(quads, count, _currentTransform, ColorWithOpacity);
-            }
-        }
-
-        public override void PushMask() => _maskDepth++;
-        public override void PopMask() => _maskDepth--;
     }
 }

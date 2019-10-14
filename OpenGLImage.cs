@@ -28,9 +28,19 @@ namespace NoZ.Platform.OpenGL
 {
     internal class OpenGLImage : Image
     {
+        /// <summary>
+        /// Pending image upload data
+        /// </summary>
         private byte[] _bytes;
+
+        /// <summary>
+        /// True if the image is locked
+        /// </summary>
         private bool _locked;
 
+        /// <summary>
+        /// Unique identifier of the image
+        /// </summary>
         public uint Id { get; private set; }
 
         public OpenGLImage (string name) : base(name) { }
@@ -121,7 +131,5 @@ namespace NoZ.Platform.OpenGL
 
             return true;
         }
-
     }
-
 }
